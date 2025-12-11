@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: url-shortener-sb
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: ${DATABASE_DIALECT}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 172800000
+
+frontend:
+  url: ${FRONTEND_URL}
