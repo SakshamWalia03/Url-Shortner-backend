@@ -1,6 +1,5 @@
 package com.url.shortener.security.jwt;
 
-
 import com.url.shortener.service.UserDetailsImpl;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -17,30 +16,43 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtUtils {
+
     @Value("${jwt.secret}")
     private String jwtSecret;
+
     @Value("${jwt.expiration}")
     private int jwtExpiration;
-    // Authorization -> Bearer <TOKEN>
+
     public String getJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-
-        if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
         return null;
     }
 
+    // Used on login
     public String generateToken(UserDetailsImpl user) {
-        String username = user.getUsername();
         String roles = user.getAuthorities().stream()
-                .map(authority->authority.getAuthority())
+                .map(a -> a.getAuthority())
                 .collect(Collectors.joining(","));
+
+        return Jwts.builder()
+                .subject(user.getUsername())
+                .claim("roles", roles)
+                .issuedAt(new Date())
+                .expiration(new Date(new Date().getTime() + jwtExpiration))
+                .signWith(key())
+                .compact();
+    }
+
+    // Used when refreshing — no UserDetailsImpl needed
+    public String generateTokenFromUsername(String username, String role) {
         return Jwts.builder()
                 .subject(username)
-                .claim("roles",roles)
+                .claim("roles", role)
                 .issuedAt(new Date())
-                .expiration(new Date((new Date().getTime()+jwtExpiration)))
+                .expiration(new Date(new Date().getTime() + jwtExpiration))
                 .signWith(key())
                 .compact();
     }
@@ -50,27 +62,23 @@ public class JwtUtils {
                 .verifyWith((SecretKey) key())
                 .build()
                 .parseSignedClaims(token)
-                .getPayload().getSubject();
-    }
-
-
-    private Key key(){
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+                .getPayload()
+                .getSubject();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().verifyWith((SecretKey) key())
+            Jwts.parser()
+                    .verifyWith((SecretKey) key())
                     .build()
                     .parseSignedClaims(token);
             return true;
-        } catch (JwtException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private Key key() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    }
 }

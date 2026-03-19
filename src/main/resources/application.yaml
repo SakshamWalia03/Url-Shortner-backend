@@ -2,6 +2,10 @@ spring:
   application:
     name: url-shortener-sb
 
+  data:
+    redis:
+      url: ${REDIS_URL}
+
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
@@ -16,7 +20,8 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 172800000
+  expiration: 60000
+  refresh-expiration: 604800000
 
 frontend:
   url: ${FRONTEND_URL}

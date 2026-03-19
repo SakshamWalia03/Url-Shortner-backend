@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClickEventDTO {
+public class ClickAnalyticsDTO {
     private LocalDate clickDate;
     private int count;
 }

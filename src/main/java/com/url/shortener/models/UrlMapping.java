@@ -2,6 +2,7 @@ package com.url.shortener.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,5 +24,6 @@ public class UrlMapping {
     private User user;
 
     @OneToMany(mappedBy = "urlMapping", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private List<ClickEvent> clickEvents;
 }
